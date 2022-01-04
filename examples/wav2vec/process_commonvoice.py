@@ -3,16 +3,30 @@
 
 import os
 import argparse
+import re
 
 import datasets
 from datasets import Audio
 import torchaudio
 from torch import Tensor
 
+chars_to_ignore_regex = '[\,\?\.\!\-\;\:\"]'  # noqa: W605
+
 
 def save_to_wav(item, output_folder):
     filename_wav = os.path.splitext(item['path'])[0] + '.wav'
     torchaudio.save(os.path.join(output_folder, filename_wav), Tensor([item['audio']['array']]), item['audio']['sampling_rate'])
+
+
+def save_transcription(item, output_folder):
+    filename_txt = os.path.splitext(item['path'])[0] + '.txt'
+    with open(os.path.join(output_folder, filename_txt), 'w') as txt_out:
+        txt_out.write(item['sentence'])
+
+
+def process_transcription(item):
+    item['sentence'] = re.sub(chars_to_ignore_regex, '', item['sentence']).lower().replace("’", "'")
+    return item
 
 
 def main(locale, split, output_folder):
@@ -23,6 +37,8 @@ def main(locale, split, output_folder):
         os.makedirs(output_folder)
 
     dataset.map(lambda x: save_to_wav(x, output_folder))
+    dataset = dataset.map(process_transcription)
+    dataset.map(lambda x: save_transcription(x, output_folder))
 
 
 def parse_args():
