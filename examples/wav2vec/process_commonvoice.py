@@ -10,7 +10,7 @@ from datasets import Audio
 import torchaudio
 from torch import Tensor
 
-chars_to_ignore_regex = '[\,\?\.\!\-\;\:\"]'  # noqa: W605
+chars_to_ignore_regex = '[\,\?\.\!\-\;\:\"„…“”\'«»]'  # noqa: W605
 
 
 def save_to_wav(item, output_folder):
